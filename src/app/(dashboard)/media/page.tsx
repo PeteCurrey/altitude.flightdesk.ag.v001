@@ -108,9 +108,9 @@ export default function MediaIngestPage() {
                      className="bg-panel border border-border px-10 py-2 text-[10px] font-mono w-64 focus:border-accent outline-none"
                   />
                </div>
-               <button className="btn-ghost py-2 px-4 flex items-center gap-2">
+               <button className="py-2 px-4 flex items-center gap-2 bg-panel border border-border text-text-muted hover:text-text-primary transition-all">
                   <Filter size={12} />
-                  <span className="text-[10px]">Neural Search</span>
+                  <span className="text-[10px] font-mono uppercase">Neural Search</span>
                </button>
             </div>
          </div>
@@ -146,7 +146,7 @@ export default function MediaIngestPage() {
                           </div>
                        </div>
                        <div className="flex justify-center">
-                          <CommandButton variant="primary" className="py-1 px-4 text-[8px] pointer-events-auto">Analyse Data</button>
+                          <CommandButton variant="primary" className="py-1 px-4 text-[8px] pointer-events-auto">Analyse Data</CommandButton>
                        </div>
                     </div>
                     

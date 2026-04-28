@@ -6,20 +6,20 @@
 
 @layer base {
   :root {
-    --background: #080A0F;
-    --background-secondary: #10131A;
-    --panel: #121827;
-    --panel-soft: rgba(255,255,255,0.035);
-    --border: rgba(255,255,255,0.12);
-    --border-strong: rgba(255,255,255,0.22);
-    --accent: #00D4FF;
-    --accent-muted: rgba(0,212,255,0.14);
-    --text-primary: #F5F5F0;
-    --text-secondary: rgba(245,245,240,0.72);
-    --text-muted: rgba(245,245,240,0.48);
-    --danger: #FF4D4D;
-    --warning: #FFB020;
-    --success: #4ADE80;
+    --background: #0A0A0B;
+    --background-secondary: #151516;
+    --panel: #111112;
+    --panel-soft: rgba(17, 17, 18, 0.8);
+    --border: #1F2023;
+    --border-strong: #2A2B2E;
+    --accent: #C5A059;
+    --accent-muted: rgba(197, 160, 89, 0.2);
+    --text-primary: #FFFFFF;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --danger: #EF4444;
+    --warning: #EAB308;
+    --success: #22C55E;
 
     --font-syne: 'Syne', sans-serif;
     --font-mono: 'DM Mono', monospace;

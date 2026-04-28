@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import Map, { Source, Layer, NavigationControl, ScaleControl, MapRef, Marker, Popup } from "react-map-gl";
+import { Map, Source, Layer, NavigationControl, ScaleControl, Marker, Popup } from "react-map-gl";
+import type { MapRef } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -540,7 +541,6 @@ function PdfChecklist({ label, desc }: any) {
        </div>
     </div>
   );
-}
 }
 
 function ToolbarButton({ icon: Icon, active, className, tooltip, onClick }: any) {

@@ -94,8 +94,8 @@ export function StatusBadge({ status, type = "default" }: any) {
 // --- Command Button ---
 export function CommandButton({ children, variant = "primary", className, ...props }: any) {
   const variants: any = {
-    primary: "bg-accent text-background border-accent hover:shadow-[0_0_15px_rgba(0,212,255,0.4)]",
-    ghost: "bg-transparent text-text-secondary border-border hover:text-text-primary hover:border-accent hover:bg-accent-muted",
+    primary: "bg-accent text-background border-accent hover:shadow-[0_0_15px_rgba(197,160,89,0.4)]",
+    ghost: "bg-transparent text-text-secondary border-border hover:text-text-primary hover:border-accent hover:bg-accent/10",
     outline: "bg-transparent text-text-primary border-border hover:border-text-primary",
     danger: "bg-danger/10 text-danger border-danger/30 hover:bg-danger hover:text-background",
   };

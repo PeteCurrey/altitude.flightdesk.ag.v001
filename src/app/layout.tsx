@@ -35,6 +35,8 @@ export const metadata: Metadata = {
   keywords: ["drone operations", "UAV management", "flight planning", "aerial operations"],
 };
 
+import { OfflineBanner } from "@/components/layout/offline-banner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,6 +46,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${syne.variable} ${dmMono.variable} ${ibmPlexSans.variable} font-sans bg-background text-text-primary antialiased`}>
         <AuthProvider>
+          <OfflineBanner />
           <SidebarProvider>
             {children}
           </SidebarProvider>

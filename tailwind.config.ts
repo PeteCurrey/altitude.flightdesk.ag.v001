@@ -9,20 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        "background-secondary": "var(--background-secondary)",
-        panel: "var(--panel)",
-        "panel-soft": "var(--panel-soft)",
-        border: "var(--border)",
-        "border-strong": "var(--border-strong)",
-        accent: "var(--accent)",
-        "accent-muted": "var(--accent-muted)",
-        "text-primary": "var(--text-primary)",
-        "text-secondary": "var(--text-secondary)",
-        "text-muted": "var(--text-muted)",
-        danger: "var(--danger)",
-        warning: "var(--warning)",
-        success: "var(--success)",
+        background: "#0A0A0B", // Tactical Black
+        panel: "#111112",
+        "background-secondary": "#151516",
+        accent: "#C5A059", // Brass Gold (Altitude-Hire Signature)
+        border: "#1F2023",
+        "text-primary": "#FFFFFF",
+        "text-secondary": "#9CA3AF",
+        "text-muted": "#6B7280",
+        void: "#000000",
+        success: "#22C55E",
+        warning: "#EAB308",
+        danger: "#EF4444",
       },
       fontFamily: {
         syne: ["var(--font-syne)", "sans-serif"],
@@ -30,7 +28,11 @@ const config: Config = {
         sans: ["var(--font-sans)", "sans-serif"],
       },
       borderRadius: {
-        none: "0",
+        none: "0px",
+        sm: "0px",
+        md: "0px",
+        lg: "0px",
+        full: "9999px",
       },
     },
   },

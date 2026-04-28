@@ -20,9 +20,29 @@ import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge } from "@/components/ui/altitude-ui";
 import { MOCK_JOBS } from "@/lib/mock-data";
 
+import { useSearchParams } from "next/navigation";
+
 export default function ClientPortalPage({ params }: { params: { jobRef: string } }) {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [activeView, setActiveView] = useState("gallery");
   const job = MOCK_JOBS[0]; // Simulated retrieval by token
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-void flex items-center justify-center p-8">
+        <div className="max-w-md w-full p-12 bg-panel border border-danger/20 text-center space-y-6">
+          <ShieldCheck size={48} className="mx-auto text-danger opacity-40" />
+          <h2 className="font-syne font-bold text-xl uppercase tracking-widest text-text-primary">Access Protocol Required</h2>
+          <p className="text-sm text-text-secondary leading-relaxed">
+            This delivery package is secured by high-authority encryption. Please use the unique access link provided by your flight operations team.
+          </p>
+          <div className="h-[1px] bg-border" />
+          <p className="font-mono text-[9px] text-text-muted uppercase">Protocol: ALT-SEC-1.3</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-void text-text-primary selection:bg-accent selection:text-background font-sans">

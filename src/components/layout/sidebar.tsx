@@ -88,7 +88,7 @@ export function Sidebar() {
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active-indicator"
-                  className="absolute left-[-12px] w-[3px] h-full bg-accent shadow-[0_0_10px_rgba(0,212,255,0.5)]"
+                  className="absolute left-[-12px] w-[3px] h-full bg-accent shadow-[0_0_10px_rgba(197,160,89,0.5)]"
                 />
               )}
               
