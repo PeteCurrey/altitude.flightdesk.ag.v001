@@ -34,6 +34,7 @@ import { cn, formatDate } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge } from "@/components/ui/altitude-ui";
 import { MOCK_JOBS } from "@/lib/mock-data";
 import { TelemetryData, FlightEvent } from "@/lib/integrations/dji-cloud";
+import { getLiveWeather } from "@/app/actions/weather";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
 
@@ -42,6 +43,13 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
   const [isLive, setIsLive] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [events, setEvents] = useState<FlightEvent[]>([]);
+  const [weather, setWeather] = useState({
+    temp: 14.5,
+    windSpeed: 4.2,
+    windDir: "NW",
+    visibility: 10000,
+    condition: "Clear"
+  });
   const [telemetry, setTelemetry] = useState<TelemetryData>({
     latitude: 53.4792,
     longitude: -2.2901,
@@ -58,6 +66,19 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
 
   const [flownPath, setFlownPath] = useState<[number, number][]>([]);
   const job = MOCK_JOBS.find(j => j.id === params.jobId) || MOCK_JOBS[0];
+
+  // Weather Sync Loop
+  useEffect(() => {
+    const updateWeather = async () => {
+      const result = await getLiveWeather(telemetry.latitude, telemetry.longitude);
+      if (result.success) {
+        setWeather(result.data as any);
+      }
+    };
+    updateWeather();
+    const weatherInterval = setInterval(updateWeather, 300000); // 5 mins
+    return () => clearInterval(weatherInterval);
+  }, [telemetry.latitude, telemetry.longitude]);
 
   // Simulated Telemetry Loop
   useEffect(() => {
@@ -157,9 +178,9 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
                   <span className="font-mono text-[9px] text-text-muted uppercase tracking-widest">Site Weather</span>
                </div>
                <div className="space-y-2">
-                  <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Wind</span><span className="text-[9px] font-mono text-text-primary">4.2m/s NW</span></div>
-                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Visibility</span><span className="text-[9px] font-mono text-text-primary">{">"}10km</span></div>
-                  <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Temp</span><span className="text-[9px] font-mono text-text-primary">14.5°C</span></div>
+                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Wind</span><span className="text-[9px] font-mono text-text-primary">{weather.windSpeed}m/s {weather.windDir}</span></div>
+                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Visibility</span><span className="text-[9px] font-mono text-text-primary">{weather.visibility >= 10000 ? ">10km" : `${(weather.visibility / 1000).toFixed(1)}km`}</span></div>
+                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Temp</span><span className="text-[9px] font-mono text-text-primary">{weather.temp.toFixed(1)}°C</span></div>
                </div>
             </DataCard>
          </div>

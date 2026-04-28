@@ -12,7 +12,7 @@ const config: Config = {
         background: "#0A0A0B", // Tactical Black
         panel: "#111112",
         "background-secondary": "#151516",
-        accent: "#C5A059", // Brass Gold (Altitude-Hire Signature)
+        accent: "#00D4FF", // Electric Blue (Altitude-Hire Signature)
         border: "#1F2023",
         "text-primary": "#FFFFFF",
         "text-secondary": "#9CA3AF",
