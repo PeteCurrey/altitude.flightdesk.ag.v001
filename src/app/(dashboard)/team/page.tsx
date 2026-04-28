@@ -17,7 +17,8 @@ import {
   Award,
   MoreVertical,
   Activity,
-  History
+  History,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge, PremiumTable, SectionPanel } from "@/components/ui/altitude-ui";
