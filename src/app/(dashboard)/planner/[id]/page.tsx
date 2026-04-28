@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Map, Source, Layer, NavigationControl, ScaleControl, Marker, Popup } from "react-map-gl";
-import type { MapRef } from "react-map-gl";
+import { Map, Source, Layer, NavigationControl, ScaleControl, Marker, Popup } from "react-map-gl/mapbox";
+import type { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
