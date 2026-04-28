@@ -1,0 +1,472 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- AUTH & ROLES ---
+
+enum Role {
+  OWNER
+  ADMIN
+  PILOT
+  OBSERVER
+  CLIENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(PILOT)
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relations
+  assignedJobs  Job[]     @relation("AssignedPilot")
+  signedSheets  JobSheet[] @relation("SignedBy")
+  activityLogs  ActivityLog[]
+  notifications Notification[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- OPERATOR PROFILE ---
+
+model OperatorProfile {
+  id                    String   @id @default(cuid())
+  businessName          String
+  logoUrl               String?
+  contactEmail          String
+  phone                 String?
+  address               String?
+  caaOperatorId         String?
+  gvcNumber             String?
+  gvcExpiry             DateTime?
+  a2cofcNumber          String?
+  a2cofcExpiry          DateTime?
+  insuranceProvider     String?
+  insurancePolicyNumber String?
+  insuranceCoverLevel   String?
+  insuranceExpiry       DateTime?
+  primaryBrandColour    String?  @default("#00D4FF")
+  emailSignature        String?  @db.Text
+  reportFooter          String?  @db.Text
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// --- CRM & CLIENTS ---
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  company       String
+  email         String    @unique
+  phone         String?
+  billingAddress String?
+  notes         String?   @db.Text
+  
+  jobs          Job[]
+  portals       PortalAccessToken[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// --- JOBS ---
+
+enum JobStatus {
+  ENQUIRY
+  BRIEFED
+  PLANNED
+  SCHEDULED
+  FLOWN
+  IN_POST
+  DELIVERED
+  INVOICED
+  ARCHIVED
+}
+
+model Job {
+  id                  String    @id @default(cuid())
+  reference           String    @unique
+  clientId            String
+  client              Client    @relation(fields: [clientId], references: [id])
+  
+  projectName         String
+  jobType             String
+  deliverables        String[]
+  status              JobStatus @default(ENQUIRY)
+  
+  // Location
+  siteAddress         String?
+  postcode            String?
+  what3Words          String?
+  latitude            Float?
+  longitude           Float?
+  siteType            String?
+  accessNotes         String?   @db.Text
+  
+  specialRequirements String?   @db.Text
+  targetDate          DateTime?
+  shootWindow         String?
+  weatherDependencies String?
+  budgetBand          String?
+  caaPermissionRequired Boolean @default(false)
+  
+  assignedPilotId     String?
+  assignedPilot       User?     @relation("AssignedPilot", fields: [assignedPilotId], references: [id])
+  
+  // Relations
+  quotes              Quote[]
+  activityLogs        ActivityLog[]
+  flightPlans         FlightPlan[]
+  shotList            ShotListItem[]
+  sessions            FlightSession[]
+  media               MediaAsset[]
+  splatCaptures       SplatCapture[]
+  jobSheets           JobSheet[]
+  reports             Report[]
+  portalAccess        PortalAccessToken[]
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// --- QUOTES ---
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  APPROVED
+  DECLINED
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  jobId       String
+  job         Job         @relation(fields: [jobId], references: [id])
+  status      QuoteStatus @default(DRAFT)
+  subtotal    Float
+  vat         Float
+  total       Float
+  pdfUrl      String?
+  
+  lineItems   QuoteLineItem[]
+  
+  sentAt      DateTime?
+  approvedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model QuoteLineItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float
+  unitPrice   Float
+  total       Float
+}
+
+// --- LOGGING ---
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+// --- FLIGHT PLANNING ---
+
+model FlightPlan {
+  id                  String   @id @default(cuid())
+  jobId               String
+  job                 Job      @relation(fields: [jobId], references: [id])
+  
+  mapState            Json?
+  boundaryGeoJson     Json?
+  pathGeoJson         Json?
+  
+  estimatedDistance   Float?
+  estimatedFlightTime Float?
+  estimatedBatteryCount Int?
+  estimatedImageCount Int?
+  
+  coverageScore       Float?
+  angleDiversityScore Float?
+  
+  waypoints           Waypoint[]
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Waypoint {
+  id            String     @id @default(cuid())
+  flightPlanId  String
+  flightPlan    FlightPlan @relation(fields: [flightPlanId], references: [id], onDelete: Cascade)
+  
+  sequence      Int
+  latitude      Float
+  longitude     Float
+  altitudeAgl   Float
+  altitudeAmsl  Float?
+  speed         Float?
+  gimbalPitch   Float?
+  heading       Float?
+  action        String?
+}
+
+model ShotListItem {
+  id                String   @id @default(cuid())
+  jobId             String
+  job               Job      @relation(fields: [jobId], references: [id])
+  
+  sequence          Int
+  name              String
+  description       String?  @db.Text
+  waypointStartId   String?
+  waypointEndId     String?
+  
+  estimatedDuration Float?
+  cameraSettings    String?
+  gimbalAngle       String?
+  notes             String?  @db.Text
+  status            String   @default("PENDING")
+  
+  media             MediaAsset[]
+}
+
+// --- LIVE FLIGHT & TELEMETRY ---
+
+model FlightSession {
+  id              String   @id @default(cuid())
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id])
+  
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  telemetrySource String?
+  summaryJson     Json?
+  flightLogUrl    String?
+  
+  events          FlightEvent[]
+}
+
+model FlightEvent {
+  id                String        @id @default(cuid())
+  flightSessionId   String
+  session           FlightSession @relation(fields: [flightSessionId], references: [id], onDelete: Cascade)
+  
+  type              String
+  timestamp         DateTime      @default(now())
+  latitude          Float?
+  longitude         Float?
+  note              String?       @db.Text
+}
+
+// --- MEDIA ---
+
+model MediaAsset {
+  id              String   @id @default(cuid())
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id])
+  
+  fileName        String
+  fileType        String
+  fileUrl         String
+  thumbnailUrl    String?
+  sizeBytes       Int
+  
+  // Metadata
+  latitude        Float?
+  longitude       Float?
+  altitude        Float?
+  capturedAt      DateTime?
+  cameraModel     String?
+  focalLength     Float?
+  iso             Int?
+  shutterSpeed    String?
+  aperture        String?
+  
+  aiTags          String[]
+  qualityScore    Float?
+  usabilityStatus String?
+  deliveryStatus  String   @default("PENDING")
+  
+  shotListItemId  String?
+  shotListItem    ShotListItem? @relation(fields: [shotListItemId], references: [id])
+  
+  createdAt       DateTime @default(now())
+}
+
+model SplatCapture {
+  id                  String   @id @default(cuid())
+  jobId               String
+  job                 Job      @relation(fields: [jobId], references: [id])
+  
+  status              String
+  provider            String?
+  sourceImageIds      String[]
+  coverageScore       Float?
+  angleDiversityScore Float?
+  
+  splatUrl            String?
+  plyUrl              String?
+  glbUrl              String?
+  
+  createdAt           DateTime @default(now())
+}
+
+// --- COMPLIANCE ---
+
+model JobSheet {
+  id                String   @id @default(cuid())
+  jobId             String
+  job               Job      @relation(fields: [jobId], references: [id])
+  
+  version           Int      @default(1)
+  status            String   @default("DRAFT")
+  
+  riskAssessmentJson Json?
+  checklistJson     Json?
+  
+  signatureUrl      String?
+  signedAt          DateTime?
+  signedById        String?
+  signedBy          User?    @relation("SignedBy", fields: [signedById], references: [id])
+  
+  pdfUrl            String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id])
+  
+  type            String
+  status          String
+  sectionsJson    Json?
+  pdfUrl          String?
+  portalPublished Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// --- EQUIPMENT ---
+
+model Equipment {
+  id                String   @id @default(cuid())
+  type              String   // DRONE, CAMERA, SENSOR, etc.
+  name              String
+  manufacturer      String
+  model             String
+  serialNumber      String   @unique
+  registrationNumber String?
+  firmwareVersion   String?
+  lastServiceDate   DateTime?
+  totalFlightHours  Float    @default(0)
+  status            String   @default("OPERATIONAL")
+  
+  batteries         Battery[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Battery {
+  id                String   @id @default(cuid())
+  equipmentId       String?
+  equipment         Equipment? @relation(fields: [equipmentId], references: [id])
+  
+  serialNumber      String   @unique
+  cycleCount        Int      @default(0)
+  healthPercent     Float    @default(100)
+  lastChargeDate    DateTime?
+  status            String   @default("HEALTHY")
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// --- SYSTEM ---
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PortalAccessToken {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  
+  token     String   @unique
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
