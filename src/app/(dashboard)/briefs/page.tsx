@@ -58,7 +58,7 @@ export default function BriefsListPage() {
                   <input 
                     type="text" 
                     placeholder="Search mission ID, client, project..." 
-                    className="input-field pl-10"
+                    className="input-field pl-10 bg-panel border border-border px-10 py-2 text-[10px] font-mono focus:border-accent outline-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -96,18 +96,18 @@ export default function BriefsListPage() {
                      <td className="py-5 px-6">
                         <div className="flex flex-col">
                            <span className="font-syne font-bold text-[11px] text-text-primary uppercase tracking-tight">{job.title}</span>
-                           <Link href={`/clients/1`} className="font-mono text-[9px] text-text-muted uppercase tracking-widest hover:text-accent transition-colors">
+                           <Link href={`/clients/${job.client.id}`} className="font-mono text-[9px] text-text-muted uppercase tracking-widest hover:text-accent transition-colors">
                               {job.client.company}
                            </Link>
                         </div>
                      </td>
-                     <td className="py-5 px-6 font-mono text-[9px] text-text-muted uppercase">{job.jobType}</td>
+                     <td className="py-5 px-6 font-mono text-[9px] text-text-muted uppercase">{job.serviceTypes[0]}</td>
                      <td className="py-5 px-6">
                         <div className="flex gap-1 flex-wrap max-w-[150px]">
-                           {job.deliverables.slice(0, 2).map((d: string) => (
+                           {job.brief.deliverables.slice(0, 2).map((d: string) => (
                               <span key={d} className="px-1.5 py-0.5 border border-border text-[7px] font-mono text-text-muted uppercase tracking-tighter">{d}</span>
                            ))}
-                           {job.deliverables.length > 2 && <span className="text-[7px] font-mono text-accent">+{job.deliverables.length - 2}</span>}
+                           {job.brief.deliverables.length > 2 && <span className="text-[7px] font-mono text-accent">+{job.brief.deliverables.length - 2}</span>}
                         </div>
                      </td>
                      <td className="py-5 px-6">
@@ -128,8 +128,10 @@ export default function BriefsListPage() {
                      </td>
                      <td className="py-5 px-6">
                         <div className="flex items-center gap-2">
-                           <div className="w-5 h-5 bg-navy border border-border flex items-center justify-center text-[8px] font-bold">MW</div>
-                           <span className="text-[10px] font-mono text-text-muted">M. Webb</span>
+                           <div className="w-5 h-5 bg-navy border border-border flex items-center justify-center text-[8px] font-bold">
+                              {job.pilot ? job.pilot.name.split(' ').map((n: string) => n[0]).join('') : '??'}
+                           </div>
+                           <span className="text-[10px] font-mono text-text-muted">{job.pilot ? job.pilot.name : 'Unassigned'}</span>
                         </div>
                      </td>
                      <td className="py-5 px-6">
@@ -137,7 +139,7 @@ export default function BriefsListPage() {
                            <Link href={`/briefs/${job.id}`}>
                               <button className="p-2 border border-border text-text-muted hover:text-accent hover:border-accent transition-all">
                                  <ArrowUpRight size={14} />
-                              </button>
+                                 </button>
                            </Link>
                            <button className="p-2 border border-border text-text-muted hover:text-accent hover:border-accent transition-all">
                               <MoreVertical size={14} />
@@ -157,7 +159,7 @@ function FilterCard({ label, options }: any) {
   return (
     <div className="space-y-2">
        <label className="font-mono text-[9px] text-text-muted uppercase tracking-widest">{label}</label>
-       <select className="input-field text-[10px] py-2 appearance-none">
+       <select className="bg-panel border border-border text-[10px] py-2 appearance-none w-full px-4 outline-none focus:border-accent">
           {options.map((o: string) => <option key={o}>{o}</option>)}
        </select>
     </div>

@@ -21,7 +21,7 @@ import {
   FileText
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
-import { DataCard, CommandButton, StatusBadge, PremiumTable } from "@/components/ui/altitude-ui";
+import { DataCard, CommandButton, StatusBadge, PremiumTable, SectionPanel } from "@/components/ui/altitude-ui";
 import { MOCK_JOBS } from "@/lib/mock-data";
 
 export default function JobSheetsPage() {

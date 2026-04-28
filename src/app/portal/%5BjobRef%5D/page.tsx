@@ -20,9 +20,10 @@ import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge } from "@/components/ui/altitude-ui";
 import { MOCK_JOBS } from "@/lib/mock-data";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function ClientPortalPage({ params }: { params: { jobRef: string } }) {
+function ClientPortalContent({ params }: { params: { jobRef: string } }) {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [activeView, setActiveView] = useState("gallery");
@@ -159,6 +160,14 @@ export default function ClientPortalPage({ params }: { params: { jobRef: string 
          </div>
       </main>
     </div>
+  );
+}
+
+export default function ClientPortalPage({ params }: { params: { jobRef: string } }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-void flex items-center justify-center font-mono text-[10px] text-accent uppercase tracking-[0.3em] animate-pulse">Initialising Secure Portal...</div>}>
+      <ClientPortalContent params={params} />
+    </Suspense>
   );
 }
 

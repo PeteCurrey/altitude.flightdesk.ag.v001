@@ -26,7 +26,6 @@ import { MOCK_MEDIA } from "@/lib/mock-data";
 
 export default function MediaIngestPage() {
   const [activeTab, setActiveTab] = useState("all");
-  const [isProcessing, setIsProcessing] = useState(false);
 
   return (
     <div className="space-y-8 pb-32">
@@ -127,7 +126,7 @@ export default function MediaIngestPage() {
                  <div className="aspect-video bg-panel border border-border overflow-hidden relative">
                     {/* Mock Image Content */}
                     <div className="absolute inset-0 bg-void">
-                       <img src={item.thumbnail} alt={item.fileName} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                       <img src={item.thumbnailUrl} alt={item.filename} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                     </div>
                     
                     {/* Overlays */}
@@ -152,20 +151,20 @@ export default function MediaIngestPage() {
                     
                     {/* Status Badge Over Image */}
                     <div className="absolute bottom-2 left-2 pointer-events-none">
-                       <StatusBadge status={item.type} type={item.type === '3D_SPLAT' ? 'accent' : 'default'} />
+                       <StatusBadge status={item.fileType} type={item.fileType === 'model' ? 'accent' : 'default'} />
                     </div>
                  </div>
                  
                  <div className="flex flex-col gap-1">
-                    <span className="font-mono text-[10px] text-text-primary font-bold truncate uppercase tracking-tight">{item.fileName}</span>
+                    <span className="font-mono text-[10px] text-text-primary font-bold truncate uppercase tracking-tight">{item.filename}</span>
                     <div className="flex items-center justify-between font-mono text-[8px] text-text-muted uppercase">
-                       <span>{item.jobRef}</span>
-                       <span>{item.size}</span>
+                       <span>{item.jobId}</span>
+                       <span>{(item.size / (1024 * 1024)).toFixed(1)} MB</span>
                     </div>
                     
                     {/* AI Tags */}
                     <div className="flex gap-1 mt-2">
-                       {item.tags.slice(0, 3).map(tag => (
+                       {item.aiTags.slice(0, 3).map(tag => (
                           <span key={tag} className="px-1.5 py-0.5 border border-border text-[7px] font-mono text-text-muted uppercase tracking-tighter">
                              {tag}
                           </span>
