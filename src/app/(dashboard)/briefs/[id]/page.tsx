@@ -26,10 +26,22 @@ import { QuoteGenerator } from "@/components/commercial/quote-generator";
 import { MOCK_JOBS } from "@/lib/mock-data";
 import Link from "next/link";
 import { JobStatus } from "@prisma/client";
+import { generateMissionReport } from "@/app/actions/ai-analysis";
 
 export default function MissionDetailPage({ params }: { params: { id: string } }) {
   const job = MOCK_JOBS.find(j => j.id === params.id) || MOCK_JOBS[0];
   const [activeTab, setActiveTab] = useState("overview");
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    const res = await generateMissionReport(job);
+    if (res.success && res.content) {
+      setAiReport(res.content);
+    }
+    setIsGeneratingReport(false);
+  };
 
   return (
     <div className="space-y-8 pb-32">
@@ -165,8 +177,48 @@ export default function MissionDetailPage({ params }: { params: { id: string } }
                     <QuoteGenerator jobId={job.id} />
                  </DataCard>
               )}
+
+              {activeTab === 'logs' && (
+                 <SectionPanel title="Operations Log & AI Analysis">
+                    <div className="space-y-6">
+                       {!aiReport ? (
+                          <div className="flex flex-col items-center justify-center p-12 bg-background-secondary border border-border border-dashed gap-4 text-center">
+                             <FileText size={32} className="text-text-muted" />
+                             <div className="space-y-1">
+                                <h4 className="font-syne font-bold text-sm text-text-primary uppercase tracking-widest">Generate Post-Flight Report</h4>
+                                <p className="font-mono text-[10px] text-text-muted uppercase tracking-widest max-w-sm">Compile telemetry, weather, and media metadata into a comprehensive mission narrative using Claude AI.</p>
+                             </div>
+                             <CommandButton 
+                                variant="primary" 
+                                className="mt-4" 
+                                onClick={handleGenerateReport}
+                                disabled={isGeneratingReport}
+                             >
+                                {isGeneratingReport ? "Compiling..." : "Generate AI Report"}
+                             </CommandButton>
+                          </div>
+                       ) : (
+                          <div className="p-6 bg-background-secondary border border-border">
+                             <div className="flex justify-between items-center mb-6 pb-6 border-b border-border/40">
+                                <div className="flex items-center gap-2">
+                                   <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                                   <span className="font-mono text-[10px] text-accent uppercase tracking-widest font-bold">AI Generated Narrative</span>
+                                </div>
+                                <CommandButton variant="ghost" className="text-[9px]">Export PDF</CommandButton>
+                             </div>
+                             <div className="prose prose-invert prose-sm max-w-none font-sans text-text-secondary leading-relaxed">
+                                {aiReport.split('\n').map((line, i) => (
+                                   <p key={i} className="mb-4 last:mb-0">{line}</p>
+                                ))}
+                             </div>
+                          </div>
+                       )}
+                    </div>
+                 </SectionPanel>
+              )}
             </motion.div>
           </AnimatePresence>
+
         </div>
 
         {/* Right Panel: Commercial & Compliance */}

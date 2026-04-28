@@ -35,6 +35,7 @@ import { DataCard, CommandButton, StatusBadge } from "@/components/ui/altitude-u
 import { MOCK_JOBS } from "@/lib/mock-data";
 import { TelemetryData, FlightEvent } from "@/lib/integrations/dji-cloud";
 import { getLiveWeather } from "@/app/actions/weather";
+import { convertCoordinatesToWords } from "@/lib/integrations/w3w";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
 
@@ -65,7 +66,19 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
   });
 
   const [flownPath, setFlownPath] = useState<[number, number][]>([]);
+  const [w3w, setW3W] = useState<string>("///fetching.location...");
+
   const job = MOCK_JOBS.find(j => j.id === params.jobId) || MOCK_JOBS[0];
+
+  useEffect(() => {
+     const fetchW3W = async () => {
+        const res = await convertCoordinatesToWords(telemetry.latitude, telemetry.longitude);
+        if (res.success && res.words) {
+           setW3W(res.words);
+        }
+     };
+     fetchW3W();
+  }, []);
 
   // Weather Sync Loop
   useEffect(() => {
@@ -135,7 +148,11 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
                <span className="font-mono text-[9px] text-accent uppercase tracking-[0.2em]">Telemetry Link</span>
                <StatusBadge status={isLive ? "LIVE" : "DISCONNECTED"} type={isLive ? "success" : "danger"} />
             </div>
-            <h4 className="font-syne font-bold text-xs uppercase tracking-widest">{job.reference} // COCKPIT</h4>
+            <h4 className="font-syne font-bold text-xs uppercase tracking-widest mb-1">{job.reference} // COCKPIT</h4>
+            <div className="flex items-center gap-1.5 text-text-muted">
+               <div className="text-[9px] font-bold text-danger">///</div>
+               <span className="font-mono text-[9px] uppercase tracking-widest">{w3w}</span>
+            </div>
          </div>
 
          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">

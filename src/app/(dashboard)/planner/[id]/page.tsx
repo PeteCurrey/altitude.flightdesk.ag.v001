@@ -48,6 +48,9 @@ import { ShotList } from "@/components/planner/shot-list";
 import { MOCK_JOBS } from "@/lib/mock-data";
 
 import { getLiveWeather } from "@/app/actions/weather";
+import { convertGeoJSONToKML } from "@/lib/integrations/google-earth";
+import { checkAirspace } from "@/app/actions/airspace";
+
 
 // Helper for basic distance (Mocked for speed, should use Turf in production)
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -100,6 +103,8 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
     visibility: 10000,
     condition: "Clear"
   });
+  const [airspaceData, setAirspaceData] = useState<any>(null);
+  const [isCheckingAirspace, setIsCheckingAirspace] = useState(false);
 
   const job = MOCK_JOBS.find(j => j.id === params.id) || MOCK_JOBS[0];
   const isSplatJob = job.deliverables.some(d => d.toLowerCase().includes('splat') || d.toLowerCase().includes('3d'));
@@ -158,6 +163,41 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
     if (selectedWpId === id) setSelectedWpId(null);
   };
 
+  const handleExportKML = async () => {
+    const geojson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Flight Path" },
+          geometry: {
+            type: "LineString",
+            coordinates: waypoints.map(w => [w.lng, w.lat])
+          }
+        }
+      ]
+    };
+    const kmlString = await convertGeoJSONToKML(geojson, job.reference);
+    const blob = new Blob([kmlString], { type: "application/vnd.google-earth.kml+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${job.reference}.kml`;
+    a.click();
+  };
+
+  const handleCheckAirspace = async () => {
+    setIsCheckingAirspace(true);
+    const res = await checkAirspace(viewState.latitude, viewState.longitude, 10);
+    if (res.success && res.features.length > 0) {
+      setAirspaceData({
+        type: "FeatureCollection",
+        features: res.features
+      });
+    }
+    setIsCheckingAirspace(false);
+  };
+
   // Frustum visualisation helper
   const frustumData = useMemo(() => {
     const selected = waypoints.find(w => w.id === selectedWpId);
@@ -209,9 +249,10 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
                       <ToolbarButton icon={LayoutGrid} active={activeTool === 'grid'} onClick={() => setActiveTool('grid')} tooltip="Grid Pattern" />
                       <ToolbarButton icon={RefreshCcw} active={activeTool === 'orbit'} onClick={() => setActiveTool('orbit')} tooltip="Orbit Pattern" />
                       <ToolbarButton icon={Ruler} active={activeTool === 'ruler'} onClick={() => setActiveTool('ruler')} />
+                      <ToolbarButton icon={ShieldAlert} active={!!airspaceData} onClick={handleCheckAirspace} tooltip="Check Airspace" />
                       <div className="w-8 h-[1px] bg-border my-2" />
                       <ToolbarButton icon={FileUp} tooltip="Import KML/KMZ" />
-                      <ToolbarButton icon={Download} tooltip="Export KML" />
+                      <ToolbarButton icon={Download} tooltip="Export KML" onClick={handleExportKML} />
                       <div className="w-8 h-[1px] bg-border my-2" />
                       <ToolbarButton icon={RotateCcw} onClick={() => setWaypoints([])} />
                       <ToolbarButton icon={Trash2} className="mt-auto text-danger/60 hover:text-danger" />
@@ -252,6 +293,28 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
                           }} 
                          />
                       </Source>
+
+                       {/* Airspace Restrictions Layer */}
+                       {airspaceData && (
+                          <Source id="airspace" type="geojson" data={airspaceData}>
+                             <Layer 
+                               id="airspace-fill" 
+                               type="fill" 
+                               paint={{ 
+                                 'fill-color': ['match', ['get', 'type'], 'FRZ', '#FF3B30', '#FFA500'], 
+                                 'fill-opacity': 0.2 
+                               }} 
+                             />
+                             <Layer 
+                               id="airspace-line" 
+                               type="line" 
+                               paint={{ 
+                                 'line-color': ['match', ['get', 'type'], 'FRZ', '#FF3B30', '#FFA500'], 
+                                 'line-width': 2 
+                               }} 
+                             />
+                          </Source>
+                       )}
 
                       {/* Gimbal Frustum Visualisation */}
                       {frustumData && (

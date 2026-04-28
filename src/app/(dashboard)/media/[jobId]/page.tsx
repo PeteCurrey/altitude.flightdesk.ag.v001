@@ -31,6 +31,9 @@ import {
 import { cn, formatCurrency } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge, SectionPanel } from "@/components/ui/altitude-ui";
 import { MOCK_JOBS } from "@/lib/mock-data";
+import { generatePresignedUploadUrl } from "@/lib/integrations/s3-storage";
+import { extractMediaTags } from "@/app/actions/ai-analysis";
+import { submitImagesForSplatting, checkSplatJobStatus } from "@/app/actions/splat-processing";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
 
@@ -38,6 +41,51 @@ export default function MediaHubPage({ params }: { params: { jobId: string } }) 
   const [activeTab, setActiveTab] = useState("gallery");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const job = MOCK_JOBS.find(j => j.id === params.jobId) || MOCK_JOBS[0];
+
+  // S3 Upload State
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // AI Tagging State
+  const [aiTags, setAiTags] = useState<string[]>([]);
+  const [isExtractingTags, setIsExtractingTags] = useState(false);
+
+  // Splat State
+  const [splatStatus, setSplatStatus] = useState<string | null>(null);
+  const [isSplatting, setIsSplatting] = useState(false);
+
+  const handleSimulatedUpload = async () => {
+     setIsUploading(true);
+     const res = await generatePresignedUploadUrl("DCIM_001.MP4", "video/mp4", job.id);
+     if (res.success) {
+        // Simulate progress
+        setTimeout(() => setIsUploading(false), 2000);
+     } else {
+        setIsUploading(false);
+     }
+  };
+
+  const handleExtractTags = async () => {
+     setIsExtractingTags(true);
+     const res = await extractMediaTags({ filename: selectedAssetId, iso: 100, shutter: "1/240" });
+     if (res.success && res.tags) {
+        setAiTags(res.tags);
+     }
+     setIsExtractingTags(false);
+  };
+
+  const handleSplatSubmission = async () => {
+     setIsSplatting(true);
+     const res = await submitImagesForSplatting(["img1.jpg", "img2.jpg"], "polycam");
+     if (res.success) {
+        setSplatStatus("processing");
+        // Simulate job completion after 3s
+        setTimeout(async () => {
+           const finalRes = await checkSplatJobStatus(res.jobId || "123", "polycam");
+           if (finalRes.success) setSplatStatus("completed");
+        }, 3000);
+     }
+     setIsSplatting(false);
+  };
 
   return (
     <div className="space-y-8 pb-32">
@@ -78,7 +126,14 @@ export default function MediaHubPage({ params }: { params: { jobId: string } }) 
                      <p className="text-text-muted font-mono text-[10px] uppercase tracking-widest">Supported: JPG, DNG, RAW, MP4, MOV (MAX 500MB PER ASSET)</p>
                   </div>
                   <div className="flex gap-4 mt-4">
-                     <CommandButton variant="primary" className="px-10">Select Local Files</CommandButton>
+                     <CommandButton 
+                        variant="primary" 
+                        className="px-10" 
+                        onClick={handleSimulatedUpload}
+                        disabled={isUploading}
+                     >
+                        {isUploading ? "Uploading to S3 via Presigned URL..." : "Select Local Files"}
+                     </CommandButton>
                      <CommandButton variant="ghost">Preserve Folder Logic</CommandButton>
                   </div>
                </DataCard>
@@ -152,6 +207,34 @@ export default function MediaHubPage({ params }: { params: { jobId: string } }) 
                </div>
             </motion.div>
          )}
+
+         {activeTab === 'ai' && (
+            <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+               <SectionPanel title="3D Digital Twin Processing">
+                  <div className="flex flex-col items-center justify-center p-12 bg-background-secondary border border-border border-dashed gap-4 text-center">
+                     <Cpu size={32} className="text-accent" />
+                     <div className="space-y-1">
+                        <h4 className="font-syne font-bold text-sm text-text-primary uppercase tracking-widest">Gaussian Splat Generation</h4>
+                        <p className="font-mono text-[10px] text-text-muted uppercase tracking-widest max-w-sm">Submit the current asset collection to Polycam for neural 3D reconstruction.</p>
+                     </div>
+                     
+                     <div className="flex flex-col items-center gap-4 mt-4">
+                        <CommandButton 
+                           variant="primary" 
+                           onClick={handleSplatSubmission}
+                           disabled={isSplatting || splatStatus === 'processing'}
+                        >
+                           {isSplatting ? "Submitting..." : splatStatus === 'processing' ? "Job Processing in Cloud..." : splatStatus === 'completed' ? "Splat Complete - View in Twin Tab" : "Submit to Polycam Engine"}
+                        </CommandButton>
+                        
+                        {splatStatus && (
+                           <StatusBadge status={`STATUS: ${splatStatus.toUpperCase()}`} type={splatStatus === 'completed' ? 'success' : 'warning'} />
+                        )}
+                     </div>
+                  </div>
+               </SectionPanel>
+            </motion.div>
+         )}
       </AnimatePresence>
 
       {/* Lightbox Overlay */}
@@ -200,13 +283,26 @@ export default function MediaHubPage({ params }: { params: { jobId: string } }) 
 
                      <SectionPanel title="Neural Analysis">
                         <div className="space-y-4">
-                           <div className="flex flex-wrap gap-2">
-                              {["SHARP", "OBLIQUE", "INDUSTRIAL", "FACADE", "STEADY"].map(tag => (
-                                 <div key={tag} className="px-2 py-1 bg-accent/5 border border-accent/20 text-[8px] font-mono text-accent uppercase">{tag}</div>
-                              ))}
-                           </div>
+                           {aiTags.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                 {aiTags.map(tag => (
+                                    <div key={tag} className="px-2 py-1 bg-accent/5 border border-accent/20 text-[8px] font-mono text-accent uppercase">{tag}</div>
+                                 ))}
+                              </div>
+                           ) : (
+                              <CommandButton 
+                                 variant="outline" 
+                                 onClick={handleExtractTags}
+                                 disabled={isExtractingTags}
+                                 className="w-full text-[9px]"
+                              >
+                                 {isExtractingTags ? "Extracting..." : "Run AI Tagging Pipeline"}
+                              </CommandButton>
+                           )}
                            <p className="text-[10px] font-sans text-text-muted leading-relaxed">
-                              AI Confidence: 98.4%. Subject correctly identified as north-east infrastructure module. Excellent edge retention.
+                              {aiTags.length > 0 
+                                ? "AI Confidence: 98.4%. Tags extracted from EXIF and semantic image analysis."
+                                : "Awaiting neural tag extraction."}
                            </p>
                         </div>
                      </SectionPanel>
