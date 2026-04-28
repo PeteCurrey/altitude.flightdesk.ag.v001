@@ -47,6 +47,8 @@ import { DataCard, CommandButton, StatusBadge, SectionPanel } from "@/components
 import { ShotList } from "@/components/planner/shot-list";
 import { MOCK_JOBS } from "@/lib/mock-data";
 
+import { getLiveWeather } from "@/app/actions/weather";
+
 // Helper for basic distance (Mocked for speed, should use Turf in production)
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371e3;
@@ -91,9 +93,29 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
   const [showProfile, setShowProfile] = useState(true);
   const [activePattern, setActivePattern] = useState("manual");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [weather, setWeather] = useState({
+    temp: 14.5,
+    windSpeed: 4.2,
+    windDir: "NW",
+    visibility: 10000,
+    condition: "Clear"
+  });
 
   const job = MOCK_JOBS.find(j => j.id === params.id) || MOCK_JOBS[0];
   const isSplatJob = job.deliverables.some(d => d.toLowerCase().includes('splat') || d.toLowerCase().includes('3d'));
+
+  // Weather Sync Loop
+  useEffect(() => {
+    const updateWeather = async () => {
+      const result = await getLiveWeather(viewState.latitude, viewState.longitude);
+      if (result.success) {
+        setWeather(result.data as any);
+      }
+    };
+    updateWeather();
+    const weatherInterval = setInterval(updateWeather, 300000); // 5 mins
+    return () => clearInterval(weatherInterval);
+  }, [viewState.latitude, viewState.longitude]);
 
   // Path metrics calculations
   const metrics = useMemo(() => {
@@ -176,37 +198,40 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
       <div className="flex-1 flex overflow-hidden">
          <AnimatePresence mode="wait">
             {activeTab === 'map' && (
-               <motion.div 
-                 key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                 className="flex-1 flex overflow-hidden"
-               >
-                  {/* Sidebar Toolbar (Left) */}
-                  <div className="w-16 bg-panel border-r border-border flex flex-col items-center py-6 gap-3 z-50">
-                     <ToolbarButton icon={MousePointer2} active={activeTool === 'select'} onClick={() => setActiveTool('select')} />
-                     <ToolbarButton icon={Plus} active={activeTool === 'waypoint'} onClick={() => setActiveTool('waypoint')} tooltip="Add Waypoint" />
-                     <ToolbarButton icon={LayoutGrid} active={activeTool === 'grid'} onClick={() => setActiveTool('grid')} tooltip="Grid Pattern" />
-                     <ToolbarButton icon={RefreshCcw} active={activeTool === 'orbit'} onClick={() => setActiveTool('orbit')} tooltip="Orbit Pattern" />
-                     <ToolbarButton icon={Ruler} active={activeTool === 'ruler'} onClick={() => setActiveTool('ruler')} />
-                     <div className="w-8 h-[1px] bg-border my-2" />
-                     <ToolbarButton icon={FileUp} tooltip="Import KML/KMZ" />
-                     <ToolbarButton icon={Download} tooltip="Export KML" />
-                     <div className="w-8 h-[1px] bg-border my-2" />
-                     <ToolbarButton icon={RotateCcw} onClick={() => setWaypoints([])} />
-                     <ToolbarButton icon={Trash2} className="mt-auto text-danger/60 hover:text-danger" />
-                  </div>
+                <motion.div 
+                  key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="flex-1 flex overflow-hidden w-full h-full"
+                >
+                   {/* Sidebar Toolbar (Left) */}
+                   <div className="w-16 bg-panel border-r border-border flex flex-col items-center py-6 gap-3 z-50">
+                      <ToolbarButton icon={MousePointer2} active={activeTool === 'select'} onClick={() => setActiveTool('select')} />
+                      <ToolbarButton icon={Plus} active={activeTool === 'waypoint'} onClick={() => setActiveTool('waypoint')} tooltip="Add Waypoint" />
+                      <ToolbarButton icon={LayoutGrid} active={activeTool === 'grid'} onClick={() => setActiveTool('grid')} tooltip="Grid Pattern" />
+                      <ToolbarButton icon={RefreshCcw} active={activeTool === 'orbit'} onClick={() => setActiveTool('orbit')} tooltip="Orbit Pattern" />
+                      <ToolbarButton icon={Ruler} active={activeTool === 'ruler'} onClick={() => setActiveTool('ruler')} />
+                      <div className="w-8 h-[1px] bg-border my-2" />
+                      <ToolbarButton icon={FileUp} tooltip="Import KML/KMZ" />
+                      <ToolbarButton icon={Download} tooltip="Export KML" />
+                      <div className="w-8 h-[1px] bg-border my-2" />
+                      <ToolbarButton icon={RotateCcw} onClick={() => setWaypoints([])} />
+                      <ToolbarButton icon={Trash2} className="mt-auto text-danger/60 hover:text-danger" />
+                   </div>
 
-                  {/* Main Map Canvas */}
-                  <div className="flex-1 relative">
-                    <Map
-                      ref={mapRef}
-                      {...viewState}
-                      onMove={evt => setViewState(evt.viewState)}
-                      onClick={handleMapClick}
-                      mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
-                      mapboxAccessToken={MAPBOX_TOKEN}
-                      terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
-                      fog={{ 'range': [0.5, 10], 'color': '#080A0F', 'horizon-blend': 0.1 }}
-                    >
+                   {/* Main Map Canvas */}
+                   <div className="flex-1 relative h-full">
+                     <Map
+                       ref={mapRef}
+                       {...viewState}
+                       onMove={evt => setViewState(evt.viewState)}
+                       onClick={handleMapClick}
+                       style={{ width: '100%', height: '100%' }}
+                       mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
+                       mapboxAccessToken={MAPBOX_TOKEN}
+                       terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
+                       fog={{ 'range': [0.5, 10], 'color': '#080A0F', 'horizon-blend': 0.1 }}
+                     >
+
+
                       <Source id="mapbox-dem" type="raster-dem" url="mapbox://mapbox.mapbox-terrain-dem-v1" tileSize={512} maxzoom={14} />
                       
                       {/* Path Line Layer */}
@@ -303,7 +328,35 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
                       )}
 
                       <NavigationControl position="bottom-right" className="!mr-6 !mb-32" />
-                    </Map>
+                     </Map>
+
+                     {/* Tactical Weather HUD Overlay */}
+                     <div className="absolute top-6 right-6 z-[60] pointer-events-none">
+                        <DataCard className="p-4 bg-background/80 backdrop-blur-md border-accent/20 min-w-[180px] pointer-events-auto">
+                           <div className="flex items-center gap-2 mb-3">
+                              <Wind size={14} className="text-accent" />
+                              <span className="font-mono text-[9px] text-text-muted uppercase tracking-widest font-bold">Site Conditions</span>
+                           </div>
+                           <div className="space-y-2">
+                              <div className="flex justify-between items-center text-[10px] font-mono">
+                                 <span className="text-text-muted uppercase">Wind</span>
+                                 <span className="text-text-primary font-bold">{weather.windSpeed}m/s {weather.windDir}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-[10px] font-mono">
+                                 <span className="text-text-muted uppercase">Visibility</span>
+                                 <span className="text-text-primary font-bold">{weather.visibility >= 10000 ? ">10km" : `${(weather.visibility / 1000).toFixed(1)}km`}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-[10px] font-mono">
+                                 <span className="text-text-muted uppercase">Temp</span>
+                                 <span className="text-text-primary font-bold">{weather.temp.toFixed(1)}°C</span>
+                              </div>
+                              <div className="flex justify-between items-center text-[10px] font-mono mt-2 pt-2 border-t border-border">
+                                 <span className="text-accent uppercase text-[8px] font-bold">{weather.condition} protocol</span>
+                                 <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_5px_var(--success)]" />
+                              </div>
+                           </div>
+                        </DataCard>
+                     </div>
 
                     {/* Altitude Profile Panel */}
                     <AnimatePresence>

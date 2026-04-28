@@ -196,6 +196,7 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
              zoom: 17,
              pitch: 0
            }}
+           style={{ width: '100%', height: '100%' }}
            mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
            mapboxAccessToken={MAPBOX_TOKEN}
          >

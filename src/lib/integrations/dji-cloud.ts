@@ -46,3 +46,23 @@ export async function fetchLiveTelemetry(sessionId: string): Promise<TelemetryDa
     timestamp: new Date().toISOString()
   };
 }
+
+export async function parseFlightRecord(file: File): Promise<{ path: [number, number][]; metadata: any }> {
+  // In production, this would use a library to parse the encrypted .txt or .csv flight logs.
+  console.log("Parsing flight record file...", file.name);
+  
+  // Return a mock path for the stub
+  return {
+    path: [
+      [-2.2901, 53.4792],
+      [-2.2905, 53.4795],
+      [-2.2910, 53.4790],
+    ],
+    metadata: {
+      maxAltitude: 120,
+      maxSpeed: 15.4,
+      totalDistance: 450,
+      duration: 1200 // seconds
+    }
+  };
+}

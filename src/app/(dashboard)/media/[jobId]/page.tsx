@@ -117,6 +117,7 @@ export default function MediaHubPage({ params }: { params: { jobId: string } }) 
             <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-[600px] border border-border relative">
                <Map
                   initialViewState={{ latitude: 53.4792, longitude: -2.2901, zoom: 17 }}
+                  style={{ width: '100%', height: '100%' }}
                   mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
                   mapboxAccessToken={MAPBOX_TOKEN}
                >
