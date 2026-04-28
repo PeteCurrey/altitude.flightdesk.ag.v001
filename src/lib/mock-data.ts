@@ -477,3 +477,44 @@ export const MOCK_SHOT_LIST: ShotListItem[] = [
     status: "pending",
   },
 ];
+
+// --- USERS -------------------------------------------------------------------
+
+export const MOCK_USERS = [
+  {
+    id: "u1",
+    name: "Marcus Webb",
+    email: "m.webb@altitude.com",
+    role: "PILOT",
+    status: "ACTIVE",
+    avatar: null,
+    lastActive: "2024-04-28T10:00:00Z"
+  },
+  {
+    id: "u2",
+    name: "Priya Patel",
+    email: "p.patel@altitude.com",
+    role: "PILOT",
+    status: "ACTIVE",
+    avatar: null,
+    lastActive: "2024-04-27T16:45:00Z"
+  },
+  {
+    id: "u3",
+    name: "Admin User",
+    email: "admin@altitude.com",
+    role: "ADMIN",
+    status: "ACTIVE",
+    avatar: null,
+    lastActive: "2024-04-28T14:20:00Z"
+  },
+  {
+    id: "u4",
+    name: "Jack Thornton",
+    email: "j.thornton@altitude.com",
+    role: "PILOT",
+    status: "ON_MISSION",
+    avatar: null,
+    lastActive: "2024-04-28T18:12:00Z"
+  }
+];

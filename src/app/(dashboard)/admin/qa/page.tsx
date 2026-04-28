@@ -129,7 +129,7 @@ export default function LifecycleQAPage() {
                            "flex gap-2",
                            log.includes("SUCCESS") ? "text-success" : "text-text-muted"
                         )}>
-                           <span className="opacity-40">>></span>
+                           <span className="opacity-40">{">>"}</span>
                            <span>{log}</span>
                         </div>
                      ))

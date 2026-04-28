@@ -158,7 +158,7 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
                </div>
                <div className="space-y-2">
                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Wind</span><span className="text-[9px] font-mono text-text-primary">4.2m/s NW</span></div>
-                  <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Visibility</span><span className="text-[9px] font-mono text-text-primary">>10km</span></div>
+                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Visibility</span><span className="text-[9px] font-mono text-text-primary">{">"}10km</span></div>
                   <div className="flex justify-between"><span className="text-[9px] font-mono text-text-muted uppercase">Temp</span><span className="text-[9px] font-mono text-text-primary">14.5°C</span></div>
                </div>
             </DataCard>

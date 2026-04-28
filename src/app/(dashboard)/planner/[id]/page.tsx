@@ -39,7 +39,8 @@ import {
   Cpu,
   Eye,
   AlertTriangle,
-  Move
+  Move,
+  CheckCircle2
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { DataCard, CommandButton, StatusBadge, SectionPanel } from "@/components/ui/altitude-ui";
