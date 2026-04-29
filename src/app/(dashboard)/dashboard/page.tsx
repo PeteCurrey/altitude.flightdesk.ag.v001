@@ -69,34 +69,43 @@ function StatusStrip() {
       </div>
       
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Active NOTAMs" value="4" icon={Radio} status="warning" />
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Flights Today" value="3" />
+      <StatusItem label="Active NOTAMs" value="4" icon={Radio} status="warning" href="/compliance" />
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Media Awaiting" value="14" icon={Camera} />
+      <StatusItem label="Flights Today" value="3" href="/jobs" />
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Certs Expiring" value="2" status="danger" />
+      <StatusItem label="Media Awaiting" value="14" icon={Camera} href="/media" />
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Insurance" value="VALID" status="success" />
+      <StatusItem label="Certs Expiring" value="2" status="danger" href="/compliance" />
+      <div className="w-[1px] h-8 bg-border" />
+      <StatusItem label="Insurance" value="VALID" status="success" href="/compliance" />
     </div>
   );
 }
 
-function StatusItem({ label, value, icon: Icon, status }: any) {
-  return (
-    <div className="flex flex-col gap-1 min-w-max">
+function StatusItem({ label, value, icon: Icon, status, href }: any) {
+  const content = (
+    <div className="flex flex-col gap-1 min-w-max group hover:opacity-80 transition-opacity">
       <span className="font-mono text-[9px] text-text-muted uppercase tracking-[0.2em]">{label}</span>
       <div className="flex items-center gap-2">
-        {Icon && <Icon size={12} className="text-text-muted" />}
+        {Icon && <Icon size={12} className="text-text-muted group-hover:text-accent transition-colors" />}
         <span className={cn(
-          "font-mono text-[10px] font-bold uppercase tracking-widest",
-          status === "success" ? "text-success" : status === "warning" ? "text-warning" : status === "danger" ? "text-danger" : "text-text-primary"
+          "font-mono text-[10px] font-bold uppercase tracking-widest transition-colors",
+          status === "success" ? "text-success group-hover:text-success/80" : 
+          status === "warning" ? "text-warning group-hover:text-warning/80" : 
+          status === "danger" ? "text-danger group-hover:text-danger/80" : "text-text-primary group-hover:text-accent"
         )}>
           {value}
         </span>
       </div>
     </div>
   );
+
+  if (href) {
+    return <Link href={href} className="block">{content}</Link>;
+  }
+
+  return content;
 }
 
 function PipelineStrip() {
@@ -115,7 +124,7 @@ function PipelineStrip() {
   return (
     <div className="grid grid-cols-9 gap-[1px] bg-border border border-border">
       {statuses.map((s, i) => (
-        <div key={s.label} className="bg-panel p-4 flex flex-col gap-2 hover:bg-background-secondary transition-colors cursor-pointer group">
+        <Link key={s.label} href="/jobs" className="block bg-panel p-4 flex flex-col gap-2 hover:bg-background-secondary transition-colors cursor-pointer group">
           <div className="flex items-center justify-between">
              <span className="font-mono text-[9px] text-text-muted uppercase tracking-widest group-hover:text-accent transition-colors">{s.label}</span>
              <span className="font-mono text-xs font-bold text-text-primary">{s.count}</span>
@@ -124,7 +133,7 @@ function PipelineStrip() {
              <span className="font-mono text-[10px] text-accent">{formatCurrency(s.value)}</span>
              <span className="font-mono text-[8px] text-text-muted uppercase tracking-tighter">Oldest: {s.age}</span>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -154,14 +163,13 @@ function CalendarStrip() {
           const hasWarning = i === 3;
           
           return (
-            <div key={i} className={cn(
-              "flex-1 min-w-[80px] bg-panel p-3 h-24 flex flex-col justify-between border-b-2 transition-all",
-              isToday ? "border-accent bg-accent/5" : "border-transparent",
-              hasFlight ? "cursor-pointer hover:bg-background-secondary" : ""
+            <Link key={i} href={hasFlight ? "/live/ALT-26-001" : "/planner"} className={cn(
+              "flex-1 min-w-[80px] bg-panel p-3 h-24 flex flex-col justify-between border-b-2 transition-all cursor-pointer hover:bg-background-secondary group",
+              isToday ? "border-accent bg-accent/5" : "border-transparent"
             )}>
               <div className="flex flex-col">
-                <span className="font-mono text-[8px] text-text-muted uppercase tracking-widest">{day.toLocaleDateString('en-GB', { weekday: 'short' })}</span>
-                <span className="font-syne text-xs font-bold">{day.getDate()}</span>
+                <span className="font-mono text-[8px] text-text-muted uppercase tracking-widest group-hover:text-text-primary transition-colors">{day.toLocaleDateString('en-GB', { weekday: 'short' })}</span>
+                <span className="font-syne text-xs font-bold group-hover:text-accent transition-colors">{day.getDate()}</span>
               </div>
               
               {hasFlight && (
@@ -173,7 +181,7 @@ function CalendarStrip() {
                    </div>
                 </div>
               )}
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -196,7 +204,7 @@ function OperationalAlerts() {
     <DataCard title="Operational Alerts" subtitle="System Intelligence & Compliance">
       <div className="space-y-4 mt-4">
         {alerts.map((a, i) => (
-          <div key={i} className="flex items-center justify-between group cursor-pointer border-b border-border/40 pb-3 last:border-0">
+          <Link key={i} href="/compliance" className="flex items-center justify-between group cursor-pointer border-b border-border/40 pb-3 last:border-0 block">
              <span className="text-[10px] font-medium text-text-secondary group-hover:text-text-primary transition-colors">{a.label}</span>
              <div className="flex items-center gap-2">
                 <span className={cn(
@@ -207,7 +215,7 @@ function OperationalAlerts() {
                 </span>
                 <ChevronRight size={10} className="text-border group-hover:text-accent transition-colors" />
              </div>
-          </div>
+          </Link>
         ))}
         <CommandButton variant="ghost" className="w-full mt-2 py-2 text-[8px]">
           Resolve All Conflicts
@@ -230,16 +238,16 @@ export default function DashboardPage() {
       <div className="px-6 space-y-10">
         {/* Primary Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <DataCard>
+          <DataCard href="/jobs">
             <MetricReadout label="Jobs This Month" value="24" trend="+4" trendType="up" />
           </DataCard>
-          <DataCard>
+          <DataCard href="/jobs">
             <MetricReadout label="Flights Completed" value="112" trend="+12" trendType="up" />
           </DataCard>
-          <DataCard>
+          <DataCard href="/jobs">
             <MetricReadout label="Avg. Job Value" value="£3,420" trend="+£140" trendType="up" />
           </DataCard>
-          <DataCard>
+          <DataCard href="/jobs">
             <MetricReadout label="Hours Flown" value="482" trend="-8" trendType="down" />
           </DataCard>
         </div>

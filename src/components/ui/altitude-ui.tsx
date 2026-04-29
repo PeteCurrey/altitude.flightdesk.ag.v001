@@ -30,9 +30,11 @@ export function PageHeader({ title, sub, breadcrumbs, children }: any) {
   );
 }
 
+import Link from "next/link";
+
 // --- Data Card ---
-export function DataCard({ children, className, title, subtitle }: any) {
-  return (
+export function DataCard({ children, className, title, subtitle, href }: any) {
+  const content = (
     <div className={cn("bg-panel border border-border p-6 relative overflow-hidden group transition-all hover:border-border-strong", className)}>
       {(title || subtitle) && (
         <div className="mb-6 flex flex-col gap-0.5">
@@ -43,6 +45,12 @@ export function DataCard({ children, className, title, subtitle }: any) {
       {children}
     </div>
   );
+
+  if (href) {
+    return <Link href={href} className="block w-full h-full">{content}</Link>;
+  }
+
+  return content;
 }
 
 // --- Metric Readout ---
