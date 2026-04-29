@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { Bell, Search, Activity, User, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const PAGE_METADATA: Record<string, { title: string; sub: string; crumbs: string[] }> = {
   "/dashboard": { 
@@ -100,6 +101,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-4">
+               <ThemeToggle />
+               
                <button className="p-2 text-text-muted hover:text-accent transition-colors relative border border-transparent hover:border-border">
                   <Bell size={16} />
                   <span className="absolute top-2 right-2 w-1 h-1 bg-accent rounded-full" />

@@ -77,7 +77,7 @@ interface Waypoint {
   action: string;
 }
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 export default function AdvancedPlannerPage({ params }: { params: { id: string } }) {
   const mapRef = useRef<MapRef>(null);
@@ -259,13 +259,14 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
                    </div>
 
                    {/* Main Map Canvas */}
-                   <div className="flex-1 relative h-full">
-                     <Map
-                       ref={mapRef}
-                       {...viewState}
-                       onMove={evt => setViewState(evt.viewState)}
-                       onClick={handleMapClick}
-                       style={{ width: '100%', height: '100%' }}
+                   <div className="flex-1 relative w-full h-full min-h-[500px]">
+                     <div className="absolute inset-0">
+                       <Map
+                         ref={mapRef}
+                         {...viewState}
+                         onMove={evt => setViewState(evt.viewState)}
+                         onClick={handleMapClick}
+                         style={{ width: '100%', height: '100%' }}
                        mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
                        mapboxAccessToken={MAPBOX_TOKEN}
                        terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
@@ -392,6 +393,7 @@ export default function AdvancedPlannerPage({ params }: { params: { id: string }
 
                       <NavigationControl position="bottom-right" className="!mr-6 !mb-32" />
                      </Map>
+                    </div>
 
                      {/* Tactical Weather HUD Overlay */}
                      <div className="absolute top-6 right-6 z-[60] pointer-events-none">

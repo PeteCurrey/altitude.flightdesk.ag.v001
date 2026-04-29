@@ -32,12 +32,42 @@ import Link from "next/link";
 
 // --- Components ---
 
+import { getLiveWeather } from "@/app/actions/weather";
+
 function StatusStrip() {
+  const [weather, setWeather] = useState<any>(null);
+
+  useEffect(() => {
+    // Default to London/HQ coordinates for the global dashboard
+    getLiveWeather(51.5072, -0.1276).then(res => {
+      if (res.success || res.data) {
+        setWeather(res.data);
+      }
+    });
+  }, []);
+
   return (
     <div className="flex items-center gap-10 px-6 py-4 bg-panel border-b border-border overflow-x-auto no-scrollbar">
       <StatusItem label="System" value="OPERATIONAL" status="success" />
       <div className="w-[1px] h-8 bg-border" />
-      <StatusItem label="Weather (Home)" value="14°C Clear" icon={Cloud} />
+      
+      {/* Live Weather Bar */}
+      <div className="flex items-center gap-6">
+         <StatusItem label="HQ Weather" value={weather ? `${weather.temp.toFixed(1)}°C ${weather.condition}` : "Loading..."} icon={Cloud} />
+         {weather && (
+           <>
+             <div className="flex flex-col gap-1">
+                <span className="font-mono text-[9px] text-text-muted uppercase tracking-[0.2em]">Wind</span>
+                <span className="font-mono text-[10px] font-bold text-text-primary uppercase tracking-widest">{weather.windSpeed.toFixed(1)}m/s {weather.windDir}</span>
+             </div>
+             <div className="flex flex-col gap-1">
+                <span className="font-mono text-[9px] text-text-muted uppercase tracking-[0.2em]">Visibility</span>
+                <span className="font-mono text-[10px] font-bold text-text-primary uppercase tracking-widest">{(weather.visibility / 1000).toFixed(1)}km</span>
+             </div>
+           </>
+         )}
+      </div>
+      
       <div className="w-[1px] h-8 bg-border" />
       <StatusItem label="Active NOTAMs" value="4" icon={Radio} status="warning" />
       <div className="w-[1px] h-8 bg-border" />
@@ -281,10 +311,10 @@ export default function DashboardPage() {
                       </td>
                       <td className="py-4 px-6 text-right">
                          <div className="flex justify-end gap-2">
-                            <ActionIcon icon={FileText} tooltip="Brief" />
-                            <ActionIcon icon={MapIcon} tooltip="Planner" />
-                            <ActionIcon icon={Camera} tooltip="Media" />
-                            <ActionIcon icon={Zap} tooltip="Report" />
+                            <ActionIcon icon={FileText} tooltip="Brief" href={`/client-portal/${job.id}`} />
+                            <ActionIcon icon={MapIcon} tooltip="Planner" href={`/planner/${job.id}`} />
+                            <ActionIcon icon={Camera} tooltip="Media" href={`/media/${job.id}`} />
+                            <ActionIcon icon={MonitorPlay} tooltip="Live" href={`/live/${job.id}`} />
                          </div>
                       </td>
                     </>
@@ -348,11 +378,11 @@ export default function DashboardPage() {
                    </button>
                 </div>
                 <div className="p-2 grid grid-cols-1 gap-1">
-                   <ModalActionItem icon={Plus} label="New Mission Brief" desc="Create client project and intake scope." />
-                   <ModalActionItem icon={MapIcon} label="Flight Planner" desc="Initiate geospatial mission design." />
-                   <ModalActionItem icon={MonitorPlay} label="Manual Flight Entry" desc="Log external mission data." />
-                   <ModalActionItem icon={Send} label="Upload Media" desc="Ingest aircraft assets for AI analysis." />
-                   <ModalActionItem icon={Zap} label="Generate Report" desc="Compile mission findings with AI." />
+                   <ModalActionItem icon={Plus} label="New Mission Brief" desc="Create client project and intake scope." href="/briefs/new" />
+                   <ModalActionItem icon={MapIcon} label="Flight Planner" desc="Initiate geospatial mission design." href={`/planner/ALT-26-001`} />
+                   <ModalActionItem icon={MonitorPlay} label="Manual Flight Entry" desc="Log external mission data." href={`/live/ALT-26-001`} />
+                   <ModalActionItem icon={Send} label="Upload Media" desc="Ingest aircraft assets for AI analysis." href={`/media/ALT-26-001`} />
+                   <ModalActionItem icon={Zap} label="Generate Report" desc="Compile mission findings with AI." href="/reports/new" />
                 </div>
                 <div className="p-4 bg-background-secondary/50 flex justify-between items-center px-6">
                    <span className="font-mono text-[8px] text-text-muted uppercase tracking-widest">System Ready / Operator: 8841</span>
@@ -367,15 +397,23 @@ export default function DashboardPage() {
   );
 }
 
-function ActionIcon({ icon: Icon, tooltip }: any) {
-  return (
-    <button className="p-2 border border-border bg-background-secondary/30 text-text-muted hover:text-accent hover:border-accent transition-all group relative">
+function ActionIcon({ icon: Icon, tooltip, href }: any) {
+  const inner = (
+    <>
        <Icon size={12} />
        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background border border-border text-[8px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
           {tooltip}
        </span>
-    </button>
+    </>
   );
+
+  const className = "p-2 border border-border bg-background-secondary/30 text-text-muted hover:text-accent hover:border-accent transition-all group relative flex items-center justify-center";
+
+  if (href) {
+    return <Link href={href} className={className}>{inner}</Link>;
+  }
+
+  return <button className={className}>{inner}</button>;
 }
 
 function EfficiencyMetric({ label, value }: any) {
@@ -396,9 +434,9 @@ function EfficiencyMetric({ label, value }: any) {
   );
 }
 
-function ModalActionItem({ icon: Icon, label, desc }: any) {
-  return (
-    <button className="flex items-center gap-5 p-4 hover:bg-accent/5 group transition-all text-left">
+function ModalActionItem({ icon: Icon, label, desc, href }: any) {
+  const inner = (
+    <>
        <div className="w-10 h-10 border border-border flex items-center justify-center text-text-muted group-hover:text-accent group-hover:border-accent transition-all">
           <Icon size={18} />
        </div>
@@ -407,8 +445,14 @@ function ModalActionItem({ icon: Icon, label, desc }: any) {
           <span className="font-sans text-[10px] text-text-muted">{desc}</span>
        </div>
        <ChevronRight size={14} className="ml-auto text-border group-hover:text-accent transition-all" />
-    </button>
+    </>
   );
+
+  const className = "flex items-center gap-5 p-4 hover:bg-accent/5 group transition-all text-left w-full";
+
+  if (href) {
+    return <Link href={href} className={className}>{inner}</Link>;
+  }
+
+  return <button className={className}>{inner}</button>;
 }
-
-

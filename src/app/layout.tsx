@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 };
 
 import { OfflineBanner } from "@/components/layout/offline-banner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export default function RootLayout({
   children,
@@ -43,14 +44,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${syne.variable} ${dmMono.variable} ${ibmPlexSans.variable} font-sans bg-background text-text-primary antialiased`}>
-        <AuthProvider>
-          <OfflineBanner />
-          <SidebarProvider>
-            {children}
-          </SidebarProvider>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${syne.variable} ${dmMono.variable} ${ibmPlexSans.variable} font-sans bg-background text-text-primary antialiased transition-colors duration-300`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false}>
+          <AuthProvider>
+            <OfflineBanner />
+            <SidebarProvider>
+              {children}
+            </SidebarProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

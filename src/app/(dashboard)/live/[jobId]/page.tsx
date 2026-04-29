@@ -37,7 +37,7 @@ import { TelemetryData, FlightEvent } from "@/lib/integrations/dji-cloud";
 import { getLiveWeather } from "@/app/actions/weather";
 import { convertCoordinatesToWords } from "@/lib/integrations/w3w";
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 export default function LiveCockpitPage({ params }: { params: { jobId: string } }) {
   const mapRef = useRef<MapRef>(null);
@@ -204,17 +204,18 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
       </div>
 
       {/* Main Map View */}
-      <div className="flex-1 relative">
-         <Map
-           ref={mapRef}
-           initialViewState={{
-             latitude: 53.4792,
-             longitude: -2.2901,
-             zoom: 17,
-             pitch: 0
-           }}
-           style={{ width: '100%', height: '100%' }}
-           mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
+      <div className="flex-1 relative min-h-[500px]">
+         <div className="absolute inset-0">
+           <Map
+             ref={mapRef}
+             initialViewState={{
+               latitude: 53.4792,
+               longitude: -2.2901,
+               zoom: 17,
+               pitch: 0
+             }}
+             style={{ width: '100%', height: '100%' }}
+             mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
            mapboxAccessToken={MAPBOX_TOKEN}
          >
             {/* Flown Path Trail */}
@@ -256,6 +257,7 @@ export default function LiveCockpitPage({ params }: { params: { jobId: string } 
 
             <NavigationControl position="bottom-right" className="!mr-6 !mb-24" />
          </Map>
+        </div>
 
          {/* Bottom Session Controls */}
          <div className="absolute bottom-0 inset-x-0 h-20 bg-panel/90 backdrop-blur-2xl border-t border-border flex items-center justify-between px-10 z-50">

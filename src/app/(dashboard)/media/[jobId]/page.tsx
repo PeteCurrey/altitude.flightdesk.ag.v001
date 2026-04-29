@@ -35,7 +35,7 @@ import { generatePresignedUploadUrl } from "@/lib/integrations/s3-storage";
 import { extractMediaTags } from "@/app/actions/ai-analysis";
 import { submitImagesForSplatting, checkSplatJobStatus } from "@/app/actions/splat-processing";
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "pk.eyJ1IjoicGV0ZWFsdGl0dWRlIiwiYSI6ImNsdzR1ZzNxejBwYTMyaW93ZzN6ZzN6ZzYifQ.Placeholder";
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 export default function MediaHubPage({ params }: { params: { jobId: string } }) {
   const [activeTab, setActiveTab] = useState("gallery");
